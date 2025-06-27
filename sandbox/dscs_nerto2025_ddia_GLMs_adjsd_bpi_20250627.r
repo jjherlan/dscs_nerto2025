@@ -408,14 +408,17 @@ create_response_curves <- function(model, data, var_names, model_name) {
 }
 
 # Generate response curves for all models
-var_names <- c("bio3", "bio7", "bio11", "bio12")
-var_names <- c("bio3", "bio7", "bio11", "bio12")
+# var_names <- c("bio3", "bio7", "bio11", "bio12")
+
+var_names <- c("adjsd", "bpi")
+
+#"bio11", "bio12")
 
 cat("\n=== Generating Response Curves ===\n")
-response_glm1 <- create_response_curves(glm1, mammals_data, var_names, "GLM Linear")
-response_glm2 <- create_response_curves(glm2, mammals_data, var_names, "GLM Quadratic")
-response_glmAIC <- create_response_curves(glmModAIC, mammals_data, var_names, "Stepwise AIC")
-response_glmBIC <- create_response_curves(glmModBIC, mammals_data, var_names, "Stepwise BIC")
+response_glm1 <- create_response_curves(glm1, ddia_adjsd_bpi, var_names, "GLM Linear")
+response_glm2 <- create_response_curves(glm2, ddia_adjsd_bpi, var_names, "GLM Quadratic")
+response_glmAIC <- create_response_curves(glmModAIC, ddia_adjsd_bpi, var_names, "Stepwise AIC")
+response_glmBIC <- create_response_curves(glmModBIC, ddia_adjsd_bpi, var_names, "Stepwise BIC")
 
 # Combine all response data
 all_responses <- rbind(response_glm1, response_glm2, response_glmAIC, response_glmBIC)
@@ -511,7 +514,8 @@ create_bivariate_response <- function(model, data, var_names, model_name) {
 
 # Generate bivariate response for the best stepwise model (AIC)
 cat("\n=== Generating Bivariate Response Surfaces ===\n")
-bivariate_response <- create_bivariate_response(glmModAIC, mammals_data, var_names, "Stepwise AIC")
+#bivariate_response <- create_bivariate_response(glmModAIC, mammals_data, var_names, "Stepwise AIC")
+bivariate_response <- create_bivariate_response(glmModAIC, ddia_adjsd_bpi, var_names, "Stepwise AIC")
 
 # Create bivariate response plot
 if(nrow(bivariate_response) > 0) {
@@ -574,11 +578,17 @@ evaluate_model <- function(model, data) {
 }
 
 # Evaluate all models
-eval_glm1 <- evaluate_model(glm1, mammals_data)
-eval_glm2 <- evaluate_model(glm2, mammals_data)
-eval_glm3 <- evaluate_model(glm3, mammals_data)
-eval_glmAIC <- evaluate_model(glmModAIC, mammals_data)
-eval_glmBIC <- evaluate_model(glmModBIC, mammals_data)
+# eval_glm1 <- evaluate_model(glm1, mammals_data)
+# eval_glm2 <- evaluate_model(glm2, mammals_data)
+# eval_glm3 <- evaluate_model(glm3, mammals_data)
+# eval_glmAIC <- evaluate_model(glmModAIC, mammals_data)
+# eval_glmBIC <- evaluate_model(glmModBIC, mammals_data)
+
+eval_glm1 <- evaluate_model(glm1, ddia_adjsd_bpi)
+eval_glm2 <- evaluate_model(glm2, ddia_adjsd_bpi)
+eval_glm3 <- evaluate_model(glm3, ddia_adjsd_bpi)
+eval_glmAIC <- evaluate_model(glmModAIC, ddia_adjsd_bpi)
+eval_glmBIC <- evaluate_model(glmModBIC, ddia_adjsd_bpi)
 
 # Create comprehensive comparison table
 comparison_table <- data.frame(
@@ -668,29 +678,29 @@ base_distribution_plot <- function(values, coords, title, is_binary = FALSE) {
 }
 
 # Create base R plots for stepwise models
-cat("\n=== Creating Base R Plots for Final Comparison ===\n")
-par(mfrow = c(2, 2))
-
-base_distribution_plot(mammals_data$VulpesVulpes,
-                      mammals_data[,c("X_WGS84", "Y_WGS84")],
-                      "Original data", is_binary = TRUE)
-
-base_distribution_plot(fitted(glmModAIC),
-                      mammals_data[,c("X_WGS84", "Y_WGS84")],
-                      "Stepwise GLM with AIC")
-
-base_distribution_plot(fitted(glmModBIC),
-                      mammals_data[,c("X_WGS84", "Y_WGS84")],
-                      "Stepwise GLM with BIC")
-
-base_distribution_plot(fitted(glm2),
-                      mammals_data[,c("X_WGS84", "Y_WGS84")],
-                      "GLM with quadratic terms")
-
-par(mfrow = c(1, 1))
-
-cat("\n=== Analysis Complete ===\n")
-cat("Comprehensive GLM analysis completed successfully!\n")
-cat("All modern plotting functions implemented to replace deprecated level.plot and response.plot2\n")
-cat("Stepwise model selection integrated with base model comparison\n")
-cat("Best performing model:", comparison_table$Model[best_aic_idx], "\n")
+# cat("\n=== Creating Base R Plots for Final Comparison ===\n")
+# par(mfrow = c(2, 2))
+# 
+# base_distribution_plot(mammals_data$VulpesVulpes,
+#                       mammals_data[,c("X_WGS84", "Y_WGS84")],
+#                       "Original data", is_binary = TRUE)
+# 
+# base_distribution_plot(fitted(glmModAIC),
+#                       mammals_data[,c("X_WGS84", "Y_WGS84")],
+#                       "Stepwise GLM with AIC")
+# 
+# base_distribution_plot(fitted(glmModBIC),
+#                       mammals_data[,c("X_WGS84", "Y_WGS84")],
+#                       "Stepwise GLM with BIC")
+# 
+# base_distribution_plot(fitted(glm2),
+#                       mammals_data[,c("X_WGS84", "Y_WGS84")],
+#                       "GLM with quadratic terms")
+# 
+# par(mfrow = c(1, 1))
+# 
+# cat("\n=== Analysis Complete ===\n")
+# cat("Comprehensive GLM analysis completed successfully!\n")
+# cat("All modern plotting functions implemented to replace deprecated level.plot and response.plot2\n")
+# cat("Stepwise model selection integrated with base model comparison\n")
+# cat("Best performing model:", comparison_table$Model[best_aic_idx], "\n")

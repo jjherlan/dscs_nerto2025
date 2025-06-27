@@ -30,7 +30,16 @@ cat("Desmophylum dianthus absence records:", sum(ddia_adjsd_bpi$Desmophyllum.dia
 cat("Prevalence:", round(mean(ddia_adjsd_bpi$Desmophyllum.dianthus), 3), "\n\n")
 
 # Check for missing values
-missing_summary <- colSums(is.na(mammals_data))
+# missing_summary <- colSums(is.na(mammals_data))
+# if(any(missing_summary > 0)) {
+#   cat("Missing values found:\n")
+#   print(missing_summary[missing_summary > 0])
+# } else {
+#   cat("No missing values detected.\n")
+# }
+
+# Check for missing values
+missing_summary <- colSums(is.na(ddia_adjsd_bpi))
 if(any(missing_summary > 0)) {
   cat("Missing values found:\n")
   print(missing_summary[missing_summary > 0])
@@ -43,19 +52,32 @@ if(any(missing_summary > 0)) {
 # =============================================================================
 
 # Model 1: GLM with linear terms
-glm1 <- glm(VulpesVulpes ~ bio3 + bio7 + bio11 + bio12, 
-            data = mammals_data, 
+# glm1 <- glm(VulpesVulpes ~ bio3 + bio7 + bio11 + bio12, 
+#             data = mammals_data, 
+#             family = "binomial")
+
+glm1 <- glm(Desmophyllum.dianthus ~ adjsd + bpi, 
+            data = ddia_adjsd_bpi, 
             family = "binomial")
 
 # Model 2: GLM with quadratic terms
-glm2 <- glm(VulpesVulpes ~ poly(bio3,2) + poly(bio7,2) + poly(bio11,2) + poly(bio12,2), 
-            data = mammals_data, 
+# glm2 <- glm(VulpesVulpes ~ poly(bio3,2) + poly(bio7,2) + poly(bio11,2) + poly(bio12,2), 
+#             data = mammals_data, 
+#             family = "binomial")
+
+glm2 <- glm(Desmophyllum.dianthus ~ poly(adjsd,2) + poly(bpi,2), 
+            data = ddia_adjsd_bpi, 
             family = "binomial")
 
 # Model 3: GLM with interactions
-glm3 <- glm(VulpesVulpes ~ poly(bio3,2) + poly(bio7,2) + poly(bio11,2) + poly(bio12,2) + 
-            bio3:bio7 + bio3:bio11 + bio3:bio12 + bio7:bio11 + bio7:bio12 + bio11:bio12,
-            data = mammals_data, 
+# glm3 <- glm(VulpesVulpes ~ poly(bio3,2) + poly(bio7,2) + poly(bio11,2) + poly(bio12,2) + 
+#             bio3:bio7 + bio3:bio11 + bio3:bio12 + bio7:bio11 + bio7:bio12 + bio11:bio12,
+#             data = mammals_data, 
+#             family = "binomial")
+
+glm3 <- glm(Desmophyllum.dianthus ~ poly(adjsd,2) + poly(bpi,2) + 
+              adjsd:bpi,
+            data = ddia_adjsd_bpi, 
             family = "binomial")
 
 # =============================================================================
@@ -63,34 +85,57 @@ glm3 <- glm(VulpesVulpes ~ poly(bio3,2) + poly(bio7,2) + poly(bio11,2) + poly(bi
 # =============================================================================
 
 # Starting model for stepwise selection
-glmStart <- glm(VulpesVulpes ~ 1, data = mammals_data, family = binomial)
+#glmStart <- glm(VulpesVulpes ~ 1, data = mammals_data, family = binomial)
+glmStart <- glm(Desmophyllum.dianthus ~ 1, data = ddia_adjsd_bpi, family = binomial)
 
 # Define the full formula for stepwise selection
-glm.formula <- formula(VulpesVulpes ~ poly(bio3,2) + poly(bio7,2) + poly(bio11,2) + poly(bio12,2) + 
-                      bio3:bio7 + bio3:bio11 + bio3:bio12 + bio7:bio11 + bio7:bio12 + bio11:bio12)
+# glm.formula <- formula(VulpesVulpes ~ poly(bio3,2) + poly(bio7,2) + poly(bio11,2) + poly(bio12,2) + 
+#                       bio3:bio7 + bio3:bio11 + bio3:bio12 + bio7:bio11 + bio7:bio12 + bio11:bio12)
+
+glm.formula <- formula(Desmophyllum.dianthus ~ poly(adjsd,2) + poly(bpi,2) + 
+                         adjsd:bpi)
 
 cat("=== Stepwise Model Selection ===\n")
 cat("Full formula for selection:\n")
 print(glm.formula)
 
 # Stepwise selection with AIC
+
+# cat("\nPerforming stepwise selection with AIC...\n")
+# glmModAIC <- stepAIC(glmStart, 
+#                      glm.formula,
+#                      data = mammals_data,
+#                      direction = "both", 
+#                      trace = FALSE, 
+#                      k = 2, 
+#                      control = glm.control(maxit = 100))
+
 cat("\nPerforming stepwise selection with AIC...\n")
 glmModAIC <- stepAIC(glmStart, 
                      glm.formula,
-                     data = mammals_data,
+                     data = ddia_adjsd_bpi,
                      direction = "both", 
                      trace = FALSE, 
                      k = 2, 
                      control = glm.control(maxit = 100))
 
 # Stepwise selection with BIC
+# cat("Performing stepwise selection with BIC...\n")
+# glmModBIC <- stepAIC(glmStart, 
+#                      glm.formula, 
+#                      direction = "both", 
+#                      trace = FALSE,
+#                      k = log(nrow(mammals_data)),
+#                      control = glm.control(maxit = 100))
+
 cat("Performing stepwise selection with BIC...\n")
 glmModBIC <- stepAIC(glmStart, 
                      glm.formula, 
                      direction = "both", 
                      trace = FALSE,
-                     k = log(nrow(mammals_data)),
+                     k = log(nrow(ddia_adjsd_bpi)),
                      control = glm.control(maxit = 100))
+
 
 # Model summaries including stepwise models
 cat("\n=== Extended Model Summaries ===\n")
@@ -116,9 +161,15 @@ modern_distribution_plot <- function(values, coords, title,
                                    point_size = 0.3) {
   
   # Prepare data
+  # plot_data <- data.frame(
+  #   X = coords[,"X_WGS84"],
+  #   Y = coords[,"Y_WGS84"],
+  #   Values = values
+  # )
+  
   plot_data <- data.frame(
-    X = coords[,"X_WGS84"],
-    Y = coords[,"Y_WGS84"],
+    X = coords[,"Longitude"],
+    Y = coords[,"Latitude"],
     Values = values
   )
   
@@ -155,35 +206,118 @@ modern_distribution_plot <- function(values, coords, title,
   return(p)
 }
 
+# Purple and Green
+# Define custom color palette for binary plots
+
+modern_distribution_plot <- function(values, coords, title, 
+                                     plot_type = "continuous", 
+                                     point_size = 0.3) {
+  
+  # Prepare data
+  # plot_data <- data.frame(
+  #   X = coords[,"X_WGS84"],
+  #   Y = coords[,"Y_WGS84"],
+  #   Values = values
+  # )
+  
+  plot_data <- data.frame(
+    X = coords[,"Longitude"],
+    Y = coords[,"Latitude"],
+    Values = values
+  )
+  
+  if(plot_type == "binary") {
+    # For binary data (presence/absence)
+    p <- ggplot(plot_data, aes(x = X, y = Y)) +
+      geom_point(aes(color = factor(Values)), size = point_size, alpha = 0.7) +
+      scale_color_manual(values = c("0" = "lightgreen", "1" = "purple"),
+                         labels = c("Absence", "Presence"),
+                         name = "") +
+      theme_minimal()
+  } else {
+    # For continuous data (probabilities)
+    p <- ggplot(plot_data, aes(x = X, y = Y)) +
+      geom_point(aes(color = Values), size = point_size, alpha = 0.7) +
+      scale_color_gradient(low = "lightgreen", high = "purple",
+                           name = "Probability") +
+      theme_minimal()
+  }
+  
+  p <- p +
+    labs(title = title,
+         x = "Longitude (WGS84)",
+         y = "Latitude (WGS84)") +
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 11),
+      axis.text = element_text(size = 8),
+      legend.position = "right",
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8)
+    ) +
+    coord_fixed(ratio = 1)
+  
+  return(p)
+}
+
+
+
 # =============================================================================
 # CREATE DISTRIBUTION PLOTS - Extended to include stepwise models
 # =============================================================================
 
 # Generate plots for all models including stepwise
+# plot1 <- modern_distribution_plot(
+#   values = mammals_data$VulpesVulpes,
+#   coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+#   title = "Original Data",
+#   plot_type = "binary"
+# )
+
 plot1 <- modern_distribution_plot(
-  values = mammals_data$VulpesVulpes,
-  coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+  values = ddia_adjsd_bpi$Desmophyllum.dianthus,
+  coords = ddia_adjsd_bpi[,c("Latitude", "Longitude")],
   title = "Original Data",
   plot_type = "binary"
 )
 
+# plot2 <- modern_distribution_plot(
+#   values = fitted(glm1),
+#   coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+#   title = "GLM Linear",
+#   plot_type = "continuous"
+# )
+
 plot2 <- modern_distribution_plot(
   values = fitted(glm1),
-  coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+  coords = ddia_adjsd_bpi[,c("Latitude", "Longitude")],
   title = "GLM Linear",
   plot_type = "continuous"
 )
 
+# plot3 <- modern_distribution_plot(
+#   values = fitted(glm2),
+#   coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+#   title = "GLM Quadratic",
+#   plot_type = "continuous"
+# )
+
 plot3 <- modern_distribution_plot(
   values = fitted(glm2),
-  coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+  coords = ddia_adjsd_bpi[,c("Latitude", "Longitude")],
   title = "GLM Quadratic",
   plot_type = "continuous"
 )
 
+# plot4 <- modern_distribution_plot(
+#   values = fitted(glmModAIC),
+#   coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+#   title = "Stepwise GLM (AIC)",
+#   plot_type = "continuous"
+# )
+
 plot4 <- modern_distribution_plot(
   values = fitted(glmModAIC),
-  coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+  coords = ddia_adjsd_bpi[,c("Latitude", "Longitude")],
   title = "Stepwise GLM (AIC)",
   plot_type = "continuous"
 )
@@ -193,16 +327,30 @@ cat("\n=== Displaying Distribution Plots (Set 1) ===\n")
 grid.arrange(plot1, plot2, plot3, plot4, ncol = 2, nrow = 2)
 
 # Additional plot comparing stepwise models
+# plot5 <- modern_distribution_plot(
+#   values = fitted(glmModBIC),
+#   coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+#   title = "Stepwise GLM (BIC)",
+#   plot_type = "continuous"
+# )
+
 plot5 <- modern_distribution_plot(
   values = fitted(glmModBIC),
-  coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+  coords = ddia_adjsd_bpi[,c("Latitude", "Longitude")],
   title = "Stepwise GLM (BIC)",
   plot_type = "continuous"
 )
 
+# plot6 <- modern_distribution_plot(
+#   values = fitted(glm3),
+#   coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+#   title = "GLM Interactions",
+#   plot_type = "continuous"
+# )
+
 plot6 <- modern_distribution_plot(
   values = fitted(glm3),
-  coords = mammals_data[,c("X_WGS84", "Y_WGS84")],
+  coords = ddia_adjsd_bpi[,c("Latitude", "Longitude")],
   title = "GLM Interactions",
   plot_type = "continuous"
 )
@@ -260,6 +408,7 @@ create_response_curves <- function(model, data, var_names, model_name) {
 }
 
 # Generate response curves for all models
+var_names <- c("bio3", "bio7", "bio11", "bio12")
 var_names <- c("bio3", "bio7", "bio11", "bio12")
 
 cat("\n=== Generating Response Curves ===\n")

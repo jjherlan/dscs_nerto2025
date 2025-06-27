@@ -47,3 +47,6 @@ corr_analysis <- corSelect(data = df,
                            cor.thresh = 0.7, method = 'spearman', select = 'VIF')
 
 predictors <- paste(corr_analysis$selected.vars, '.tif', sep = '')
+
+write.csv(df, "ne_canyons_dscs_adjsd_bpi_20250627.csv")
+

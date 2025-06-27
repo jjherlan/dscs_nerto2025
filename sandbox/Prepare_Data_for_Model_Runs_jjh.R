@@ -5,7 +5,7 @@ library(terra)
 library(fuzzySim)
 
 ## Define data directories
-root_dir <- file.path('D:', 'dscs_nerto2025', 'R', 'data')
+root_dir <- file.path('D:', 'dscs_nerto2025', 'data')
 #root_dir <- file.path('C:', '_BioGeoProjects', 'NortheastCanyons_DSCS_Modeling')
 
 ## Read merged observation data into data frame
@@ -13,7 +13,8 @@ df <- read.csv(file = file.path(root_dir,
                                 #'Analysis', 
                                 #'Merged_Samples', 
                                 #'prediction_predictor_rasters',
-                                'dat_mod_final_matt.csv'), 
+                                #'data',
+                                'dat_mod_final.csv'), 
                header = TRUE)
 
 ## Define set of potential environmental covariates
@@ -21,7 +22,7 @@ predictors <- list.files(path = file.path(root_dir,
                                           #'Analysis', 
                                           #'Predictor_Development', 
                                           #'Predictor_Geotiffs',
-                                          'prediction_predictor_rasters',
+                                          'predictor_rasters',
                                           'adjsd_bpi'), 
                          pattern = '.tif')
 
@@ -31,7 +32,7 @@ for (i in 1:length(predictors)) {
                           #'Analysis', 
                           #'Predictor_Development', 
                           #'Predictor_Geotiffs', 
-                          'prediction_predictor_rasters',
+                          'predictor_rasters',
                           'adjsd_bpi',
                           predictors[i]))
   

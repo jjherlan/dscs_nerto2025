@@ -324,16 +324,20 @@ biomod2:::.scope(ddia_btm[1:3,c("btm_arag_ann", "btm_chl_ann", "btm_curr_mag_ann
 
 # gamModAIC.test <- step.gam(gamStart, biomod2:::.scope(mammals_data[1:3,c("bio3",  "bio7", "bio11", "bio12")], "s", 2:4), trace=F, direction = "both")
 
-gamModAIC.test <- step.gam(gamStart, biomod2:::.scope(mammals_data[1:3,c("btm_arag_ann", "btm_chl_ann", "btm_curr_mag_ann", "btm_dissic_ann", 
+gamModAIC.test <- step.gam(gamStart, biomod2:::.scope(ddia_btm[1:3,c("btm_arag_ann", "btm_chl_ann", "btm_curr_mag_ann", "btm_dissic_ann", 
                                                                          "btm_dissoc_ann", "btm_o2_ann", "btm_sal_ann", "btm_talk_ann", "btm_temp_ann")], "s", 2:4), trace = F, direction = "both")
 
 # r GAMb5 10.8, opts.label = 'fig_quarter_page', fig.cap = 'Figure 10. 8. Observed (black=presence, light gray= absence) and potential distribution of Vulpes vulpes extracted from gamModAIC. The gray scale of prediction illustratesshows habitat suitability values between 0 (light, unsuitable) and 1 (dark, highly suitable)'}
 
 par(mfrow=c(1,2))
 
-level.plot(mammals_data$VulpesVulpes, XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3,level.range=c(0,1), show.scale=F, title="Original data")
+#level.plot(mammals_data$VulpesVulpes, XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3,level.range=c(0,1), show.scale=F, title="Original data")
 
-level.plot(fitted(gamModAIC), XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3, level.range=c(0,1), show.scale=F, title="Stepwise GAM with AIC")
+level.plot(ddia_btm$Desmophyllum.dianthus, XY=ddia_btm[,c("Latitude", "Longitude")], color.gradient = "grey", cex=0.3,level.range=c(0,1), show.scale=F, title="Original data")
+
+#level.plot(fitted(gamModAIC), XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3, level.range=c(0,1), show.scale=F, title="Stepwise GAM with AIC")
+
+level.plot(fitted(gamModAIC), XY=ddia_btm[,c("Longitude", "Latitude")], color.gradient = "grey", cex=0.3, level.range=c(0,1), show.scale=F, title="Stepwise GAM with AIC")
 
 # r code_10.3_Generalized_Additive_Models_b6, fig.keep = FALSE
 
@@ -341,7 +345,12 @@ if(is.element("package:gam", search())) detach("package:gam") ## make sure the g
 
 library(mgcv)
 
-gam_mgcv <- gam(VulpesVulpes~s(bio3)+s(bio7)+s(bio11)+s(bio12),data = mammals_data, family = "binomial")
+#gam_mgcv <- gam(VulpesVulpes~s(bio3)+s(bio7)+s(bio11)+s(bio12),data = mammals_data, family = "binomial")
+
+gam_mgcv <- gam(Desmophyllum.dianthus ~ s(btm_arag_ann) + s(btm_chl_ann) + 
+                  s(btm_curr_mag_ann) + s(btm_dissic_ann) + s(btm_dissoc_ann) + 
+                  s(btm_o2_ann) + s(btm_sal_ann) + s(btm_talk_ann) + s(btm_temp_ann), data = ddia_btm, family = "binomial")
+
 
 ## see a range of summary statistics
 
@@ -355,9 +364,17 @@ gam.check(gam_mgcv)
 plot(gam_mgcv,pages=1, seWithMean=TRUE)  
 
 # r GAMb8 10.10, opts.label = 'fig_quarter_page', fig.cap = 'Figure 10.10. Response curves from the model calibrated with the mgcv package (gam_mgcv).'}
+
+# rp <- response.plot2(models = c('gam_mgcv'),
+#                      Data = mammals_data[,c("bio3", "bio7", "bio11", "bio12")],
+#                      show.variables = c("bio3",  "bio7", "bio11", "bio12"),
+#                      fixed.var.metric = 'mean', plot = FALSE, use.formal.names = TRUE)
+
 rp <- response.plot2(models = c('gam_mgcv'),
-                     Data = mammals_data[,c("bio3", "bio7", "bio11", "bio12")],
-                     show.variables = c("bio3",  "bio7", "bio11", "bio12"),
+                     Data = mammals_data[,c("btm_arag_ann", "btm_chl_ann", "btm_curr_mag_ann", "btm_dissic_ann", 
+                                            "btm_dissoc_ann", "btm_o2_ann", "btm_sal_ann", "btm_talk_ann", "btm_temp_ann")],
+                     show.variables = c("btm_arag_ann", "btm_chl_ann", "btm_curr_mag_ann", "btm_dissic_ann", 
+                                        "btm_dissoc_ann", "btm_o2_ann", "btm_sal_ann", "btm_talk_ann", "btm_temp_ann"),
                      fixed.var.metric = 'mean', plot = FALSE, use.formal.names = TRUE)
 
 gg.rp <- ggplot(rp, aes(x = expl.val, y = pred.val, lty = pred.name)) +
@@ -368,10 +385,15 @@ gg.rp <- ggplot(rp, aes(x = expl.val, y = pred.val, lty = pred.name)) +
 print(gg.rp)
 
 # r GAMb9 10.11, opts.label = 'fig_quarter_page', fig.cap = 'Figure 10.11. Observed (black=presence, light gray= absence) and potential distribution of Vulpes vulpes extracted from the gam_mgcv object. The gray scale of predictions illustrates shows habitat suitability values between 0 (light, unsuitable) and 1 (dark, highly suitable).'}
+
 par(mfrow=c(1,2))
 
-level.plot(mammals_data$VulpesVulpes, XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3,level.range=c(0,1), show.scale=F, title="Original data")
+#level.plot(mammals_data$VulpesVulpes, XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3,level.range=c(0,1), show.scale=F, title="Original data")
 
-level.plot(fitted(gam_mgcv), XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3, level.range=c(0,1), show.scale=F, title="GAM with mgcv")
+level.plot(ddia_btm$Desmophyllum.dianthus, XY=ddia_btm[,c("Latitude", "Longitude")], color.gradient = "grey", cex=0.3,level.range=c(0,1), show.scale=F, title="Original data")
 
-par(mfrow=c(1,1))
+#level.plot(fitted(gam_mgcv), XY=mammals_data[,c("X_WGS84", "Y_WGS84")], color.gradient = "grey", cex=0.3, level.range=c(0,1), show.scale=F, title="GAM with mgcv")
+
+level.plot(fitted(gam_mgcv), XY=ddia_btm[,c("Latitude", "Longitude")], color.gradient = "grey", cex=0.3, level.range=c(0,1), show.scale=F, title="GAM with mgcv")
+
+par(mfrow = c(1, 1))

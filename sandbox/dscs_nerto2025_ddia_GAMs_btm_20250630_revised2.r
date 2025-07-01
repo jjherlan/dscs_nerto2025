@@ -22,7 +22,7 @@ library(gam)          # For GAM modeling (will switch to mgcv later)
 
 # Load the dataset
 cat("=== Loading Dataset ===\n")
-ddia_btm <- read.csv("ne_canyons_dscs_btm_20250630.csv", row.names = 1)
+ddia_btm <- read.csv("data/ne_canyons_dscs_btm_20250630.csv", row.names = 1)
 
 # =============================================================================
 # SECTION 2: Data Exploration and Quality Assessment
@@ -35,7 +35,9 @@ cat("Desmophyllum dianthus absence records:", sum(ddia_btm$Desmophyllum.dianthus
 cat("Prevalence:", round(mean(ddia_btm$Desmophyllum.dianthus), 3), "\n\n")
 
 # Check for missing values
+
 missing_summary <- colSums(is.na(ddia_btm))
+
 if(any(missing_summary > 0)) {
   cat("Missing values found:\n")
   print(missing_summary[missing_summary > 0])

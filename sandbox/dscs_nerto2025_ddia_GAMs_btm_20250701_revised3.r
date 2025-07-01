@@ -23,7 +23,8 @@ library(mgcv)         # For GAM modeling (using mgcv from the start)
 
 # Load the dataset
 cat("=== Loading Dataset ===\n")
-ddia_btm <- read.csv("ne_canyons_dscs_btm_20250630.csv", row.names = 1)
+#ddia_btm <- read.csv("ne_canyons_dscs_btm_20250630.csv", row.names = 1)
+ddia_btm <- read.csv("data/ne_canyons_dscs_btm_20250630.csv", row.names = 1)
 
 # =============================================================================
 # SECTION 2: Data Exploration and Quality Assessment

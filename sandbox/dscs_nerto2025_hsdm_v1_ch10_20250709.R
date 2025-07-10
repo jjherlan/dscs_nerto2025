@@ -235,20 +235,24 @@ ranef(fm1.occ)
 # Define the function for finite-sample number and proportion of occupied sites
 
 fs.fn <- function(fm){
-  Nocc <- sum(raneff(fm)@post[,2,])
+  Nocc <- sum(ranef(fm)@post[,2,])
   psi.fs <- Nocc / nrow(fm@data@y)
   out <- c(Nocc = Nocc, psi.fs = psi.fs)
   return(out)
 }
 
-# Booststrap the function
+# Bootstrap the function
+fs.hat <- fs.fn(fm1.occ)           # Point estimate
+pb.fs <- parboot(fm1.occ, fs.fn, nsim=10000, report=2) # Takes a while (33 min)
+system.time(pb.fs <- parboot(fm1.occ, fs.fn, nsim=100, report=10)) # quicker
+
+# Predictions for specified values of vegHt, say 0.2 and 2.1
+newdat <- data.frame(vegHt=c(0.2, 2.1))
+predict(fm.occ1, type="state", newdata=newdat, append = TRUE)
 
 
-
-
-
-
-
+# Summarize bootstrap distributions
+summary(pb.fs@t.star)
 
 
 

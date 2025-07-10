@@ -234,6 +234,14 @@ ranef(fm1.occ)
 
 # Define the function for finite-sample number and proportion of occupied sites
 
+fs.fn <- function(fm){
+  Nocc <- sum(raneff(fm)@post[,2,])
+  psi.fs <- Nocc / nrow(fm@data@y)
+  out <- c(Nocc = Nocc, psi.fs = psi.fs)
+  return(out)
+}
+
+# Booststrap the function
 
 
 
